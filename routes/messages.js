@@ -1,4 +1,4 @@
-//Importa o framework Express, que facilita a criação de servidores e rotas em Node.js.
+//Importa o Express, que facilita a criação de servidores e rotas em Node.js.
 const express = require('express');
 const router = express.Router();
 const {cadastros} = require('../data/db');
