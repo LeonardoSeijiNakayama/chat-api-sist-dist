@@ -1,40 +1,110 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WebSocket Test</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat WebSocket</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        #chat-box {
+            width: 50%;
+            margin: auto;
+            height: 300px;
+            overflow-y: scroll;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+
+        input,
+        button {
+            margin-top: 10px;
+            padding: 8px;
+        }
+    </style>
 </head>
+
 <body>
-  <h1>WebSocket Test</h1>
-  <input type="text" id="messageInput" placeholder="Digite uma mensagem">
-  <button onclick="sendMessage()">Enviar</button>
-  <ul id="messages"></ul>
+    <h2>Chat WebSocket</h2>
+    <div>
+        <input type="text" id="userId" placeholder="ID do usuário">
+        <input type="text" id="userName" placeholder="Nome do usuário">
+        <input type="text" id="chatId" placeholder="ID do chat">
+        <button onclick="joinChat()">Entrar no Chat</button>
+    </div>
+    <div id="chat-box"></div>
+    <div>
+        <input type="text" id="message" placeholder="Digite sua mensagem">
+        <button onclick="sendMessage()">Enviar</button>
+    </div>
+    <script>
+        let ws;
+        let userId, userName, chatId;
 
-  <script>
-    const ws = new WebSocket('ws://localhost:3000');
+        function joinChat() {
+            userId = document.getElementById('userId').value;
+            userName = document.getElementById('userName').value;
+            chatId = document.getElementById('chatId').value;
 
-    ws.onopen = () => {
-      console.log('Conectado ao servidor WebSocket');
-    };
+            if (!userId || !userName || !chatId) {
+                alert("Preencha todos os campos");
+                return;
+            }
 
-    ws.onmessage = (event) => {
-      const messages = document.getElementById('messages');
-      const li = document.createElement('li');
-      li.textContent = event.data;
-      messages.appendChild(li);
-    };
+            //  Faz a requisição HTTP GET para buscar mensagens antigas antes de abrir o WebSocket
+            fetch(`http://localhost:3000/api/messages?chatId=${chatId}`)
+                .then(response => response.json())
+                .then(messages => {
+                    const chatBox = document.getElementById("chat-box");
+                    chatBox.innerHTML = ""; // Limpa o chat antes de adicionar mensagens antigas
 
-    ws.onclose = () => {
-      console.log('Desconectado do servidor WebSocket');
-    };
+                    messages.forEach(msg => {
+                        chatBox.innerHTML += `<p><strong>${msg.userName}:</strong> ${msg.content}</p>`;
+                    });
 
-    function sendMessage() {
-      const input = document.getElementById('messageInput');
-      const message = input.value;
-      ws.send(message);
-      input.value = '';
-    }
-  </script>
+                    chatBox.scrollTop = chatBox.scrollHeight;
+
+                    //Agora conecta ao WebSocket após carregar mensagens antigas
+                    ws = new WebSocket('ws://localhost:3001');
+
+                    ws.onopen = () => {
+                        ws.send(JSON.stringify({ type: "join", userId, chatId }));
+                    };
+
+                    ws.onmessage = (event) => {
+                        const data = JSON.parse(event.data);
+                        if (data.type === "message") {
+                            chatBox.innerHTML += `<p><strong>${data.userName}:</strong> ${data.content}</p>`;
+                            chatBox.scrollTop = chatBox.scrollHeight;
+                        } else if (data.type === "error") {
+                            alert(data.message);
+                        }
+                    };
+
+                    ws.onclose = () => {
+                        alert("Conexão fechada");
+                    };
+                })
+                .catch(error => {
+                    console.error("Erro ao carregar mensagens:", error);
+                    alert("Erro ao carregar mensagens");
+                });
+        }
+
+
+        function sendMessage() {
+            const message = document.getElementById('message').value;
+            const userName = document.getElementById('userName').value;
+            if (!message) return;
+
+            ws.send(JSON.stringify({ type: "message", userId, chatId, content: message, userName }));
+            document.getElementById('message').value = "";
+        }
+    </script>
 </body>
+
 </html>
