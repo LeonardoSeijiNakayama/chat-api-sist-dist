@@ -33,7 +33,7 @@ router.post('/chats', (req, res) =>{
     }
 
     thisChatId = chats.length + 1;
-
+    
     const newChat = new Chat(thisChatId, participants, messages);
     chats.push(newChat);
     res.status(201).json(newChat);

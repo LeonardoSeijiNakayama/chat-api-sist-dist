@@ -33,7 +33,7 @@ const WebSocket = require('ws');
 const { chats, cadastros } = require('./data/db');
 const Message = require('./models/Message');
 
-const wss = new WebSocket.Server({ port: 3001 });
+const wss = new WebSocket.Server({ server });
 
 wss.on('connection', (ws) => {
   ws.on('message', (message) => {

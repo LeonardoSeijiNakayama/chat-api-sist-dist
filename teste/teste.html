@@ -69,7 +69,7 @@
                     chatBox.scrollTop = chatBox.scrollHeight;
 
                     //Agora conecta ao WebSocket após carregar mensagens antigas
-                    ws = new WebSocket('ws://localhost:3001');
+                    ws = new WebSocket('ws://localhost:3000');
 
                     ws.onopen = () => {
                         ws.send(JSON.stringify({ type: "join", userId, chatId }));

@@ -8,10 +8,10 @@ router.get('/cadastros', (req, res) =>{
 });
 
 router.post('/cadastros', (req, res) => {
-    const {id, name, email, password} = req.body;
+    const { name, email, password} = req.body;
 
-    if(!id || !name || !email || !password){
-        return res.status(400).json({error : 'Usuário, id e email são obrigatórios'})
+    if(!name || !email || !password){
+        return res.status(400).json({error : 'Usuário, email e senha são obrigatórios'})
     }
 
     userExists = cadastros.find(user => user.name === name);
