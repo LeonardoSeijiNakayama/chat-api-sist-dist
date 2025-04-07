@@ -19,6 +19,7 @@ router.post('/cadastros', (req, res) => {
     if(userExists){
         return res.status(400).json({error: 'Nome de usuário já está sendo utilizado'});
     }
+    
 
     const newUser = new User(cadastros.length+1, name, email, password);
 

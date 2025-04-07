@@ -7,14 +7,22 @@ const Chat = require('../models/Chat');
 
 
 router.get('/chats', (req, res) =>{
-    res.json(chats);
+    const userId = req.query.userId;
+    
+    const userExists = cadastros.find(user => user.id === userId);
+
+    if(!userExists){
+        return res.status(400).json({error: 'Usuário não encontrado'});
+    }
+
+    res.json(userExists.chats);
 });
 
 router.post('/chats', (req, res) =>{
-    const { participants, messages} = req.body;
+    const {creatorId, participants, messages} = req.body;
 
-    if( !participants || !messages){
-        return res.status(400).json({error: 'Participantes e Mensagens são obrigatórios'});
+    if(!creatorId || !participants || !messages){
+        return res.status(400).json({error: 'Id do criador, participantes e Mensagens são obrigatórios'});
     }
 
     let flag = true;
@@ -32,9 +40,17 @@ router.post('/chats', (req, res) =>{
         return res.status(400).json({error: 'Todos os participantes da conversa devem ser usuários válidos'});
     }
 
+    const creatorExists = cadastros.find(user => user.id === creatorId);
+
+    if(!creatorExists){
+        return res.status(400).json({error: 'Usuário criador não encontrado'});
+    }
+
+
     thisChatId = chats.length + 1;
     
     const newChat = new Chat(thisChatId, participants, messages);
+    creatorExists.chats.push(newChat)
     chats.push(newChat);
     res.status(201).json(newChat);
 });
